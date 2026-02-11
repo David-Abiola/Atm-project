@@ -1,0 +1,5 @@
+json,json@gmail.com,json,0
+solomon,solomon911@gmail.com,solo,0
+susan,suw@gmail.com,susan,0
+samuel,sam@gmail.com,samu,0
+david,david@gmail.com,123e,0
