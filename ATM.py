@@ -16,11 +16,11 @@ def create():
             email = input("enter your email ")
             if "@gmail.com" not in email:
                 print("Invalid email. format(name@gmail.com).")
+                email = input("enter email ")
             else:
                 print("authenticating email")
-                time.sleep(5s)
+                time.sleep(5)
                 print("email accepted")
-                break
             print("\nDate of birth")
 
             day = int(input("Enter day only: "))
@@ -154,6 +154,7 @@ def atm_menu(username, users):
                     users[username]["balance"] -= amount
                     users[receiver]["balance"] += amount
                     save_users(users)
+                    time.sleep(5)
                     print(f"Transfer successful to {receiver} at {datetime.now()}", )
             except ValueError:
                 print("Enter numbers only")
