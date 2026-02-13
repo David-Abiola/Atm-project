@@ -1,151 +1,166 @@
-# ATM PROJECT
+# ===== ATM PROJECT =====
 import time
 from datetime import datetime
-# CREATE ACCOUNT
-def create():
-    try:
-        print("\nWelcome to the create account session")
 
-        while True:
-            name = input("Enter your name: ").strip()
-            if name.isalpha():
-                break
-            else:
-                print("Invalid name. Use letters only.")
-        while True:
-            email = input("enter your email ")
-            if "@gmail.com" not in email:
-                print("Invalid email. format(name@gmail.com).")
-                email = input("enter email ")
-            else:
-                print("authenticating email")
-                time.sleep(5)
-                print("email accepted")
-            print("\nDate of birth")
 
-            day = int(input("Enter day only: "))
-            while day > 31 or day < 1:
-                day = int(input("Invalid day. Enter again: "))
+FILE_NAME = "app.txt"
 
-            month = int(input("Enter month only: "))
-            while month > 12 or month < 1:
-                month = int(input("Invalid month. Enter again: "))
 
-            year = int(input("Enter year only: "))
-            # age = 2026 - year
+# ---------- CREATE ACCOUNT ----------
+def create_account():
+    print("\n=== CREATE ACCOUNT ===")
 
-            if year >= 2008:
-                print("You are under 18, account denied.")
-                return
-
-            print("\nLet's proceed")
-
-            while True:
-                password = input("Enter your password: ").strip()
-                confirm = input("confirm password ")
-                if password == confirm:
-                    print("password accepted")
-                else:
-                    print("password no equivalent to confirm")
-                    password = input("Enter your password: ").strip()
-                    confirm = input("confirm password ")
-                if len(password) >= 4:
-                    break
-                else:
-                    print("Password must be more than 4 or more than 4 characters")
-
-            balance = 0
-            #code to open and store file into app.txt
-            with open("app.txt", "a") as file:
-                file.write(name.lower() + "," + email.lower() + "," +  password + "," + str(balance) + "\n")
-
-            print("\nAccount created successfully")
+    # NAME
+    while True:
+        name = input("Enter your name: ").strip().lower()
+        if name.isalpha():
             break
+        print("Invalid name. Use letters only.")
 
-    except ValueError:
-        print("Wrong value entered.")
+    # EMAIL LOOP
+    while True:
+        email = input("Enter your email: ").strip().lower()
+        if email.endswith("@gmail.com") and "@" in email:
+            print("Authenticating email...")
+            time.sleep(2)
+            print("Email accepted")
+            break
+        print("Invalid email format (example: name@gmail.com)")
+
+    # DATE OF BIRTH
+    print("\nDate of Birth")
+
+    while True:
+        try:
+            day = int(input("Day (1-31): "))
+            if 1 <= day <= 31:
+                break
+        except ValueError:
+            pass
+        print("Invalid day")
+
+    while True:
+        try:
+            month = int(input("Month (1-12): "))
+            if 1 <= month <= 12:
+                break
+        except ValueError:
+            pass
+        print("Invalid month")
+
+    while True:
+        try:
+            year = int(input("Year: "))
+            break
+        except ValueError:
+            print("Enter numbers only")
+
+    if year >= 2008:
+        print("You are under 18. Account denied.")
+        return
+
+    # PASSWORD CONFIRM LOOP
+    while True:
+        password = input("Enter password (min 4 chars): ").strip()
+        confirm = input("Confirm password: ").strip()
+
+        if len(password) < 4:
+            print("Password too short")
+            continue
+
+        if password != confirm:
+            print("Passwords do not match")
+            continue
+
+        print("Password accepted")
+        break
+
+    balance = 0
+
+    with open(FILE_NAME, "a") as file:
+        file.write(f"{name},{email},{password},{balance}\n")
+
+    print("Account created successfully!")
 
 
-# LOAD USERS
+# ---------- LOAD USERS ----------
 def load_users():
     users = {}
 
     try:
-        with open("app.txt", "r") as file:
+        with open(FILE_NAME, "r") as file:
             for line in file:
-                line = line.strip()
-                if line == "":
+                if line.strip() == "":
                     continue
-                name, password, email, balance = line.split(",")
-                users[name] = {"password": password, "email": email, "balance": int(balance)}
+                name, email, password, balance = line.strip().split(",")
+                users[name] = {
+                    "email": email,
+                    "password": password,
+                    "balance": int(balance)
+                }
     except FileNotFoundError:
         pass
 
     return users
 
 
-# SAVE USERS
+# ---------- SAVE USERS ----------
 def save_users(users):
-    with open("app.txt", "w") as file:
-        for name in users:
-            password = users[name]["password"]
-            balance = users[name]["balance"]
-            email = users[name]["email"]
-            file.write(name + "," + email + "," + password + "," + str(balance) + "\n")
+    with open(FILE_NAME, "w") as file:
+        for name, data in users.items():
+            file.write(f"{name},{data['email']},{data['password']},{data['balance']}\n")
 
 
-# LOGIN MENU
+# ---------- ATM MENU ----------
 def atm_menu(username, users):
     while True:
-        print("\nATM MENU")
-        print("1. Check balance")
+        print("\n=== ATM MENU ===")
+        print("1. Check Balance")
         print("2. Deposit")
         print("3. Withdraw")
         print("4. Transfer")
         print("5. Logout")
 
-        choice = input("Enter: ")
+        choice = input("Choose option: ")
 
         if choice == "1":
-            print("Your balance is:", users[username]["balance"])
+            print("Balance:", users[username]["balance"])
 
         elif choice == "2":
             try:
-                amount = int(input("Enter amount to deposit: "))
+                amount = int(input("Deposit amount: "))
                 if amount > 0:
                     users[username]["balance"] += amount
                     save_users(users)
-                    print(f"Deposit successful at {datetime.now()}")
+                    print("Deposit successful", datetime.now())
                 else:
                     print("Invalid amount")
             except ValueError:
-                print("Enter numbers only")
+                print("Numbers only")
 
         elif choice == "3":
             try:
-                amount = int(input("Enter amount to withdraw: "))
-                if amount > users[username]["balance"]:
-                    print("Insufficient balance")
-                elif amount <= 0:
+                amount = int(input("Withdraw amount: "))
+                if amount <= 0:
                     print("Invalid amount")
+                elif amount > users[username]["balance"]:
+                    print("Insufficient funds")
                 else:
                     users[username]["balance"] -= amount
                     save_users(users)
-                    print(f"Withdrawal successful at {datetime.now()}")
+                    print("Withdrawal successful", datetime.now())
             except ValueError:
-                print("Enter numbers only")
+                print("Numbers only")
 
         elif choice == "4":
-            receiver = input("Enter receiver name: ").strip().lower()
+            receiver = input("Receiver name: ").strip().lower()
 
             if receiver not in users:
-                print("Receiver not found")
+                print("User not found")
                 continue
 
             try:
-                amount = int(input("Enter amount to transfer: "))
-                message = input("add message ")
-
+                amount = int(input("Transfer amount: "))
                 if amount <= 0:
                     print("Invalid amount")
                 elif amount > users[username]["balance"]:
@@ -154,10 +169,9 @@ def atm_menu(username, users):
                     users[username]["balance"] -= amount
                     users[receiver]["balance"] += amount
                     save_users(users)
-                    time.sleep(5)
-                    print(f"Transfer successful to {receiver} at {datetime.now()}", )
+                    print("Transfer successful", datetime.now())
             except ValueError:
-                print("Enter numbers only")
+                print("Numbers only")
 
         elif choice == "5":
             print("Logged out")
@@ -167,45 +181,41 @@ def atm_menu(username, users):
             print("Invalid option")
 
 
-# LOGIN SESSION
+# ---------- LOGIN ----------
 def login():
-    print("\nWelcome to the login session")
-
     users = load_users()
     attempts = 3
 
     while attempts > 0:
-        name = input("Enter your name: ").strip().lower()
-        password = input("Enter your password: ").strip()
+        name = input("Name: ").strip().lower()
+        password = input("Password: ").strip()
 
-        if password in users and users[name]["password"] and users[name]["email"] == name:
-            print("Login successful")
+        if name in users and users[name]["password"] == password:
+            print("Login successful!")
             atm_menu(name, users)
             return
         else:
             attempts -= 1
-            print("Wrong login details")
-            print("Attempts left:", attempts)
+            print("Wrong details. Attempts left:", attempts)
 
-    print("Too many failed attempts")
+    print("Too many failed attempts.")
 
 
-# ===== MAIN MENU =====
-print("Welcome to our ATM machine")
-print("Enter 1 to create account")
-print("Enter 2 to login")
-print("quit to exit")
+# ---------- MAIN ----------
+while True:
+    print("\n=== ATM MACHINE ===")
+    print("1. Create Account")
+    print("2. Login")
+    print("3. Quit")
 
-user_input = input("Enter: ")
+    option = input("Select: ")
 
-if user_input == "quit":
-    print("ok")
-
-elif user_input == "1":
-    create()
-
-elif user_input == "2":
-    login()
-
-else:
-    print("Option not available.")
+    if option == "1":
+        create_account()
+    elif option == "2":
+        login()
+    elif option == "3":
+        print("Goodbye")
+        break
+    else:
+        print("Invalid option")
