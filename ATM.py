@@ -6,7 +6,7 @@ from datetime import datetime
 FILE_NAME = "app.txt"
 
 
-# ---------- CREATE ACCOUNT ----------
+#  CREATE ACCOUNT
 def create_account():
     print("\n=== CREATE ACCOUNT ===")
 
@@ -111,7 +111,7 @@ def save_users(users):
             file.write(f"{name},{data['email']},{data['password']},{data['balance']}\n")
 
 
-# ---------- ATM MENU ----------
+#  ATM MENU
 def atm_menu(username, users):
     while True:
         print("\n=== ATM MENU ===")
@@ -201,21 +201,21 @@ def login():
     print("Too many failed attempts.")
 
 
-# ---------- MAIN ----------
+# MAIN
 while True:
-    print("\n=== ATM MACHINE ===")
+    print("\n Welcome to David's ATM MACHINE ===")
     print("1. Create Account")
     print("2. Login")
     print("3. Quit")
 
-    option = input("Select: ")
+    option = input("Enter: ")
 
     if option == "1":
         create_account()
     elif option == "2":
         login()
     elif option == "3":
-        print("Goodbye")
+        print()
         break
     else:
         print("Invalid option")
