@@ -195,7 +195,9 @@ def transfer():
         "message": "Transfer successful",
         "time": str(datetime.now())
     })
-
+@app.route("/")
+def home():
+    return "ATM API is running successfully 🚀"
 
 # =========================
 # RUN SERVER
