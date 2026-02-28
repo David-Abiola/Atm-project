@@ -1,7 +1,7 @@
 from datetime import datetime
 
 class Coffee:
-    def __init__(self, vanilla= 10, choco= 10, berry= 10):
+    def __init__(self, vanilla= 2, choco= 2, berry= 2):
         self.stock = {
             "vanilla": vanilla,
             "choco": choco,
@@ -20,7 +20,7 @@ class Coffee:
             try:
                 quantity = int(input("Enter quantity: "))
                 if self.stock[order] < quantity:
-                    print(f"we have {self.stock[order]} quantities left.")
+                    print(f"we don't have up to that in our store")
                     break
 
                 paid_amount = int(input("Enter amount to pay: "))
@@ -53,7 +53,7 @@ Chocolate  = 250
 Strawberry = 250
 """)
 coffee = Coffee()
-product = Coffee(10,10,10)
+product = Coffee(2,2,2)
 try:
     enter = int(input("Enter 1 to order and 2 to check numbers of product in our stock and 3 to exit and: "))
     if enter == 1:

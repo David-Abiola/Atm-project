@@ -1,6 +1,10 @@
-json,json@gmail.com,json,0
-solomon,solomon911@gmail.com,solo,0
-susan,suw@gmail.com,susan,0
+json,json@gmail.com,json,900
+solomon,solomon911@gmail.com,solo,100
+susan,susan@gmail.com,3556,0
 samuel,sam@gmail.com,samu,0
-david,david@gmail.com,123e,0
+david,david@gmail.com,123e,2300
 josh,josh@gmail.com,josh,0
+ferran,ferran@gmail.com,ferran,2000
+dobly,fola@gmail.com,wicked mario,4500
+irabor,irabor@gmail.com,erit,0
+fred,fred@gmail.com,terry,0

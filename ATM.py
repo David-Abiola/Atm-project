@@ -1,89 +1,14 @@
-# ===== ATM PROJECT =====
-import time
+from flask import Flask, request, jsonify
 from datetime import datetime
 
+app = Flask(__name__)
 
 FILE_NAME = "app.txt"
 
 
-#  CREATE ACCOUNT
-def create_account():
-    print("\n=== CREATE ACCOUNT ===")
-
-    # NAME
-    while True:
-        name = input("Enter your name: ").strip().lower()
-        if name.isalpha():
-            break
-        print("Invalid name. Use letters only.")
-
-    # EMAIL LOOP
-    while True:
-        email = input("Enter your email: ").strip().lower()
-        if email.endswith("@gmail.com") and "@" in email:
-            print("Authenticating email...")
-            time.sleep(2)
-            print("Email accepted")
-            break
-        print("Invalid email format (example: name@gmail.com)")
-
-    # DATE OF BIRTH
-    print("\nDate of Birth")
-
-    while True:
-        try:
-            day = int(input("Day (1-31): "))
-            if 1 <= day <= 31:
-                break
-        except ValueError:
-            pass
-        print("Invalid day")
-
-    while True:
-        try:
-            month = int(input("Month (1-12): "))
-            if 1 <= month <= 12:
-                break
-        except ValueError:
-            pass
-        print("Invalid month")
-
-    while True:
-        try:
-            year = int(input("Year: "))
-            break
-        except ValueError:
-            print("Enter numbers only")
-
-    if year >= 2008:
-        print("You are under 18. Account denied.")
-        return
-
-    # PASSWORD CONFIRM LOOP
-    while True:
-        password = input("Enter password (min 4 chars): ").strip()
-        confirm = input("Confirm password: ").strip()
-
-        if len(password) < 4:
-            print("Password too short")
-            continue
-
-        if password != confirm:
-            print("Passwords do not match")
-            continue
-
-        print("Password accepted")
-        break
-
-    balance = 0
-
-    with open(FILE_NAME, "a") as file:
-        file.write(f"{name},{email},{password},{balance}\n")
-
-    print("Account created successfully!")
-
-
-# ---------- LOAD USERS ----------
+# =========================
+# LOAD USERS
+# =========================
 def load_users():
     users = {}
 
@@ -104,118 +29,176 @@ def load_users():
     return users
 
 
-# ---------- SAVE USERS ----------
+# =========================
+# SAVE USERS
+# =========================
 def save_users(users):
     with open(FILE_NAME, "w") as file:
         for name, data in users.items():
             file.write(f"{name},{data['email']},{data['password']},{data['balance']}\n")
 
 
-#  ATM MENU
-def atm_menu(username, users):
-    while True:
-        print("\n=== ATM MENU ===")
-        print("1. Check Balance")
-        print("2. Deposit")
-        print("3. Withdraw")
-        print("4. Transfer")
-        print("5. Logout")
-
-        choice = input("Choose option: ")
-
-        if choice == "1":
-            print("Balance:", users[username]["balance"])
-
-        elif choice == "2":
-            try:
-                amount = int(input("Deposit amount: "))
-                if amount > 0:
-                    users[username]["balance"] += amount
-                    save_users(users)
-                    print("Deposit successful", datetime.now())
-                else:
-                    print("Invalid amount")
-            except ValueError:
-                print("Numbers only")
-
-        elif choice == "3":
-            try:
-                amount = int(input("Withdraw amount: "))
-                if amount <= 0:
-                    print("Invalid amount")
-                elif amount > users[username]["balance"]:
-                    print("Insufficient funds")
-                else:
-                    users[username]["balance"] -= amount
-                    save_users(users)
-                    print("Withdrawal successful", datetime.now())
-            except ValueError:
-                print("Numbers only")
-
-        elif choice == "4":
-            receiver = input("Receiver name: ").strip().lower()
-
-            if receiver not in users:
-                print("User not found")
-                continue
-
-            try:
-                amount = int(input("Transfer amount: "))
-                if amount <= 0:
-                    print("Invalid amount")
-                elif amount > users[username]["balance"]:
-                    print("Insufficient balance")
-                else:
-                    users[username]["balance"] -= amount
-                    users[receiver]["balance"] += amount
-                    save_users(users)
-                    print("Transfer successful", datetime.now())
-            except ValueError:
-                print("Numbers only")
-
-        elif choice == "5":
-            print("Logged out")
-            break
-
-        else:
-            print("Invalid option")
-
-
-# ---------- LOGIN ----------
-def login():
+# =========================
+# CREATE ACCOUNT
+# =========================
+@app.route("/create", methods=["POST"])
+def create_account():
+    data = request.json
     users = load_users()
-    attempts = 3
 
-    while attempts > 0:
-        name = input("Name: ").strip().lower()
-        password = input("Password: ").strip()
+    name = data.get("name", "").strip().lower()
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "").strip()
+    year = int(data.get("year", 0))
 
-        if name in users and users[name]["password"] == password:
-            print("Login successful!")
-            atm_menu(name, users)
-            return
-        else:
-            attempts -= 1
-            print("Wrong details. Attempts left:", attempts)
+    if not name.isalpha():
+        return jsonify({"error": "Invalid name"}), 400
 
-    print("Too many failed attempts.")
+    if not email.endswith("@gmail.com"):
+        return jsonify({"error": "Invalid email"}), 400
+
+    if year >= 2008:
+        return jsonify({"error": "Under 18"}), 403
+
+    if len(password) < 4:
+        return jsonify({"error": "Password too short"}), 400
+
+    if name in users:
+        return jsonify({"error": "User already exists"}), 400
+
+    users[name] = {
+        "email": email,
+        "password": password,
+        "balance": 0
+    }
+
+    save_users(users)
+
+    return jsonify({"message": "Account created successfully"}), 201
 
 
-# MAIN
-while True:
-    print("\n Welcome to David's ATM MACHINE ===")
-    print("1. Create Account")
-    print("2. Login")
-    print("3. Quit")
+# =========================
+# LOGIN
+# =========================
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    users = load_users()
 
-    option = input("Enter: ")
+    name = data.get("name", "").strip().lower()
+    password = data.get("password", "").strip()
 
-    if option == "1":
-        create_account()
-    elif option == "2":
-        login()
-    elif option == "3":
-        print()
-        break
+    if name in users and users[name]["password"] == password:
+        return jsonify({"message": "Login successful"})
     else:
-        print("Invalid option")
+        return jsonify({"error": "Invalid credentials"}), 401
+
+
+# =========================
+# CHECK BALANCE
+# =========================
+@app.route("/balance/<username>", methods=["GET"])
+def check_balance(username):
+    users = load_users()
+
+    if username not in users:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({
+        "balance": users[username]["balance"]
+    })
+
+
+# =========================
+# DEPOSIT
+# =========================
+@app.route("/deposit", methods=["POST"])
+def deposit():
+    data = request.json
+    users = load_users()
+
+    name = data.get("name")
+    amount = int(data.get("amount", 0))
+
+    if name not in users:
+        return jsonify({"error": "User not found"}), 404
+
+    if amount <= 0:
+        return jsonify({"error": "Invalid amount"}), 400
+
+    users[name]["balance"] += amount
+    save_users(users)
+
+    return jsonify({
+        "message": "Deposit successful",
+        "balance": users[name]["balance"],
+        "time": str(datetime.now())
+    })
+
+
+# =========================
+# WITHDRAW
+# =========================
+@app.route("/withdraw", methods=["POST"])
+def withdraw():
+    data = request.json
+    users = load_users()
+
+    name = data.get("name")
+    amount = int(data.get("amount", 0))
+
+    if name not in users:
+        return jsonify({"error": "User not found"}), 404
+
+    if amount <= 0:
+        return jsonify({"error": "Invalid amount"}), 400
+
+    if amount > users[name]["balance"]:
+        return jsonify({"error": "Insufficient funds"}), 400
+
+    users[name]["balance"] -= amount
+    save_users(users)
+
+    return jsonify({
+        "message": "Withdrawal successful",
+        "balance": users[name]["balance"],
+        "time": str(datetime.now())
+    })
+
+
+# =========================
+# TRANSFER
+# =========================
+@app.route("/transfer", methods=["POST"])
+def transfer():
+    data = request.json
+    users = load_users()
+
+    sender = data.get("sender")
+    receiver = data.get("receiver")
+    amount = int(data.get("amount", 0))
+
+    if sender not in users or receiver not in users:
+        return jsonify({"error": "User not found"}), 404
+
+    if amount <= 0:
+        return jsonify({"error": "Invalid amount"}), 400
+
+    if amount > users[sender]["balance"]:
+        return jsonify({"error": "Insufficient balance"}), 400
+
+    users[sender]["balance"] -= amount
+    users[receiver]["balance"] += amount
+    save_users(users)
+
+    return jsonify({
+        "message": "Transfer successful",
+        "time": str(datetime.now())
+    })
+
+
+# =========================
+# RUN SERVER
+# =========================
+if __name__ == "__main__":
+    app.run(debug=True)
